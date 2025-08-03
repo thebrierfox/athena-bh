@@ -1,0 +1,20 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+.env
+
+# IDE/Editor directories
+.idea/
+.vscode/
+
+# Mac OS files
+.DS_Store
+
+# Test outputs
+htmlcov/
+coverage/
+*.cover
