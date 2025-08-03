@@ -1,0 +1,161 @@
+{
+  "meta": {
+    "codename": "Athena-BH",
+    "maintainer": "BuildHers LLC (Lexi)",
+    "version": "1.2.0",
+    "version_date": "2025-08-03",
+    "summary": "AI expert assistant for BuildHers interior-renovation projects that unifies design visualization, project orchestration, and jurisdiction-specific code-compliance management."
+  },
+
+  "principles": [
+    "Client-Centric Clarity",
+    "Compliance-by-Default",
+    "Open-Source First",
+    "Modularity & Scalability",
+    "Transparent Collaboration"
+  ],
+
+  "code_families_tracked": {
+    "IBC": "2024",
+    "IEBC": "2024",
+    "IRC": "2024",
+    "NEC": "2023",
+    "IPC": "2024",
+    "IMC": "2024",
+    "IFGC": "2024",
+    "IECC": "2024",
+    "ADA": "2010 + ICC A117.1-2017/2025",
+    "NFPA101_IFC": "2024"
+  },
+
+  "modules": {
+    "code_intel_engine": {
+      "description": "Fetches and caches up-to-date code sections via ICC Code Connect API; exposes `validate_*` helpers.",
+      "triggers": ["discovery", "check_code"],
+      "secrets": ["ICC_CODE_CONNECT_KEY"]
+    },
+    "compliance_query_layer": {
+      "description": "NL → code-section answers with UpCodes Copilot fallback.",
+      "secrets": ["UPCODES_API_TOKEN"]
+    },
+    "jurisdiction_resolver": {
+      "description": "Detects locality, adopted editions, and amendments using ICC Adoption Map + municipal scrape."
+    },
+    "design_guardrails": {
+      "description": "Real-time geometric & ADA clearance checks inside BIM/CAD (Spacely hook)."
+    },
+    "permit_pack_generator": {
+      "description": "Builds code sheets, narratives, and stamped PDFs from markdown/LaTeX pipeline."
+    },
+    "living_checklists": {
+      "description": "Phase-gated QA/QC tasks with pass/fail toggles and JSON log output."
+    },
+    "resource_sourcing": {
+      "description": "Scrapes material prices and normalizes to project budget lines."
+    },
+    "project_management": {
+      "description": "Syncs milestones/Gantt to ProjectLibre/OpenProject; emits schedule alerts."
+    },
+    "virtual_design": {
+      "description": "Spacely API for photo-to-3D renders and annotated design boards.",
+      "secrets": ["SPACELY_API_URL"]
+    },
+    "resilience_layer": {
+      "description": "Global retry, exponential back-off, circuit breaker, and local cache for API calls."
+    },
+    "secrets_manager": {
+      "description": "Loads and rotates secrets from Vault/Doppler; validates presence on bootstrap."
+    },
+    "logging_layer": {
+      "description": "Structured JSON logs with phase, module, status, and code_ref; ships to ELK."
+    },
+    "historic_registry_check": {
+      "description": "Flags projects on the National/State Historic Register; toggles IEBC Ch 12 logic."
+    },
+    "local_amendments_overrides": {
+      "description": "Lookup map keyed by jurisdiction to patch/override baseline code sections."
+    },
+    "ar_scan_module": {
+      "description": "Optional LiDAR/AR capture → auto-dimensioned BIM import (iOS/Android).",
+      "enabled": false
+    },
+    "sustainability_scoring": {
+      "description": "IECC + embodied-carbon lookup producing sustainability badge.",
+      "enabled": false
+    }
+  },
+
+  "workflows": {
+    "discovery": [
+      { "module": "secrets_manager", "method": "validate", "params": {} },
+      { "module": "jurisdiction_resolver", "method": "detect", "params": {} },
+      { "module": "code_intel_engine", "method": "bootstrap", "params": {} },
+      { "module": "code_intel_engine", "method": "report_triggers", "params": { "checks": ["occupancy", "egress"] } }
+    ],
+    "concept_design": [
+      { "module": "design_guardrails", "method": "validate", "params": { "clearances": true, "ada": true } },
+      { "module": "virtual_design", "method": "render", "params": {} }
+    ],
+    "budget_spec": [
+      { "module": "resource_sourcing", "method": "scrape_prices", "params": {} },
+      { "module": "project_management", "method": "update_budget", "params": {} }
+    ],
+    "permit_prep": [
+      { "module": "permit_pack_generator", "method": "create", "params": {} }
+    ],
+    "construction_admin": [
+      { "module": "living_checklists", "method": "audit", "params": { "topics": ["IEBC_work_area", "NEC_GFCI_AFCI"] } }
+    ],
+    "close_out": [
+      { "module": "living_checklists", "method": "final_qc", "params": {} },
+      { "module": "code_intel_engine", "method": "compliance_certificate", "params": {} }
+    ]
+  },
+
+  "security": {
+    "pii_redaction": true,
+    "encrypted_storage": "GitHub-AES256",
+    "role_based_access": true
+  },
+
+  "error_handling": {
+    "max_retries": 3,
+    "backoff": "exponential",
+    "on_failure": "log_and_raise"
+  },
+
+  "logging": {
+    "format": "json",
+    "sink": "ELK",
+    "fields": ["timestamp", "phase", "module", "status", "message", "code_ref"]
+  },
+
+  "secrets_template": {
+    "ICC_CODE_CONNECT_KEY": "REPLACE_ME",
+    "UPCODES_API_TOKEN": "REPLACE_ME",
+    "SPACELY_API_URL": "https://api.spacely.org"
+  },
+
+  "testing": {
+    "nightly_sample_project": "tests/sample_project.yaml",
+    "assertions": [
+      "all_workflows_complete_successfully",
+      "code_triggers_exist_for_detected_jurisdiction"
+    ],
+    "rollback": {
+      "enabled": true,
+      "strategy": "semantic_version_revert"
+    }
+  },
+
+  "glossary": {
+    "IBC": "International Building Code",
+    "IEBC": "International Existing Building Code",
+    "IRC": "International Residential Code",
+    "NEC": "National Electrical Code",
+    "IPC": "International Plumbing Code",
+    "IMC": "International Mechanical Code",
+    "IECC": "International Energy Conservation Code",
+    "Athena-BH": "Codename for BuildHers AI Expert Assistant"
+  }
+}
