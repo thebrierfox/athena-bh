@@ -1,0 +1,23 @@
+# Sample renovation project configuration for Athena-BH nightly tests
+project_name: Sample Renovation
+jurisdiction:
+  city: Austin
+  state: TX
+  county: Travis
+building_type: residential
+project_phase: discovery
+codes:
+  IBC: "2024"
+  IEBC: "2024"
+  IRC: "2024"
+  NEC: "2023"
+  IECC: "2024"
+  IPC: "2024"
+  IMC: "2024"
+scope:
+  - kitchen_remodel
+  - bathroom_accessibility
+budget: 50000
+timeline:
+  start: 2025-01-01
+  end: 2025-06-30
